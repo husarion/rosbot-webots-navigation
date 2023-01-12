@@ -1,10 +1,14 @@
-ARG ROS_DISTRO=galactic
+ARG ROS_DISTRO=humble
 
-# Argument in the COPY instruction generated syntax error: COPY --from=husarnet/ros:$ROS_DISTRO
-# This is fake stage to use $ROS_DISTRO argument inside the image name.
-FROM husarnet/ros:$ROS_DISTRO-ros-base AS husarnet-ros
+FROM husarnet/ros:$ROS_DISTRO-ros-base AS package-builder
 
-FROM ros:$ROS_DISTRO-ros-base AS package-builder
+# Determine Webots version to be used and set default argument
+ARG WEBOTS_VERSION=R2023a
+ARG WEBOTS_PACKAGE_PREFIX=
+
+RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
+    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_VERSION/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
+    tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool \
                                             ros-$ROS_DISTRO-webots-ros2 ros-$ROS_DISTRO-robot-localization \
@@ -13,11 +17,11 @@ RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN cd / && git clone https://github.com/husarion/webots.git webots -b husarion
+RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/husarion/webots.git webots -b husarion
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b husarion-rosbot-xl && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b $ROS_DISTRO && \
     cd src/webots_ros2 && \
     git submodule update --init webots_ros2_husarion/rosbot_ros && \
     git submodule update --init webots_ros2_husarion/rosbot_xl_ros && \
@@ -29,54 +33,50 @@ RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_x
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     colcon build --packages-select  webots_ros2_husarion \
+                                    webots_ros2_driver \
+                                    webots_ros2_msgs \
                                     rosbot_description \
                                     rosbot_bringup \
                                     rosbot_xl_description  \
                                     ros_components_description
+FROM husarnet/ros:$ROS_DISTRO-ros-base
 
-FROM cyberbotics/webots:R2023a-ubuntu20.04
 SHELL ["/bin/bash", "-c"]
 ARG ROS_DISTRO
 ENV ROS_DISTRO $ROS_DISTRO
 
-RUN apt-get update && apt-get install -q -y --no-install-recommends \
-    dirmngr \
-    gnupg2 \
-    && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+COPY --from=package-builder /webots/ /usr/local/webots/
+COPY --from=package-builder /webots_assets/webots/projects/appearances/ /usr/local/webots/projects/appearances/
+COPY --from=package-builder /webots_assets/webots/projects/devices/orbbec/ /usr/local/webots/projects/devices/orbbec/
+COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/protos/
+COPY --from=package-builder /webots_assets/webots/projects/objects/ /usr/local/webots/projects/objects/
+COPY --from=package-builder /webots_assets/webots/projects/objects/backgrounds/ /usr/local/webots/projects/objects/backgrounds/
+COPY --from=package-builder /webots_assets/webots/projects/objects/floors/ /usr/local/webots/projects/objects/floors/
+COPY --from=package-builder /webots_assets/webots/projects/default/worlds/textures/cubic/ /usr/local/webots/projects/default/worlds/textures/cubic/
+COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/
+COPY --from=package-builder /webots_assets/webots/projects/robots/husarion/ /usr/local/webots/projects/robots/husarion/
+COPY --from=package-builder /webots_assets/webots/projects/devices/slamtec/ /usr/local/webots/projects/devices/slamtec/
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-RUN echo "deb http://packages.ros.org/ros2/ubuntu focal main" > /etc/apt/sources.list.d/ros2-latest.list
+ENV QTWEBENGINE_DISABLE_SANDBOX=1
+ENV WEBOTS_HOME /usr/local/webots
+ENV PATH /usr/local/webots:${PATH}
 
-COPY --from=package-builder /webots/projects/appearances/ /usr/local/webots/projects/appearances/
-COPY --from=package-builder /webots/projects/devices/orbbec/ /usr/local/webots/projects/devices/orbbec/
-COPY --from=package-builder /webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/protos/
-COPY --from=package-builder /webots/projects/objects/ /usr/local/webots/projects/objects/
-COPY --from=package-builder /webots/projects/objects/backgrounds/ /usr/local/webots/projects/objects/backgrounds/
-COPY --from=package-builder /webots/projects/objects/floors/ /usr/local/webots/projects/objects/floors/
-COPY --from=package-builder /webots/projects/default/worlds/textures/cubic/ /usr/local/webots/projects/default/worlds/textures/cubic/
-COPY --from=package-builder /webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/
-COPY --from=package-builder /webots/projects/robots/husarion/ /usr/local/webots/projects/robots/husarion/
-COPY --from=package-builder /webots/projects/devices/slamtec/ /usr/local/webots/projects/devices/slamtec/
+# Disable dpkg/gdebi interactive dialogs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Webots runtime dependencies
+RUN apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
+  wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
+  chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
 WORKDIR /ros2_ws
 RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-webots-ros2 \
-        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization  \
-        ros-$ROS_DISTRO-rmw-fastrtps-cpp \
-        ros-$ROS_DISTRO-rmw-cyclonedds-cpp \
+        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow \
     && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=package-builder /ros2_ws /ros2_ws
-COPY --from=husarnet-ros /ros_entrypoint.sh /ros_entrypoint.sh
-COPY --from=husarnet-ros /dds-config-templates /dds-config-templates
-COPY --from=husarnet-ros /gen-xml-simple-cyclonedds.sh /
-COPY --from=husarnet-ros /gen-xml-simple-fastdds.sh /
-COPY --from=husarnet-ros /usr/bin/yq /usr/bin/yq
-RUN chmod +x /usr/bin/yq
 
 ENTRYPOINT [ "/ros_entrypoint.sh" ]

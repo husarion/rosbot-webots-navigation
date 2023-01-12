@@ -5,7 +5,7 @@
 services:
 
   webots:
-    image: husarion/webots:galactic
+    image: husarion/webots:humble
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     runtime: nvidia
@@ -16,5 +16,7 @@ services:
       - LIBGL_ALWAYS_SOFTWARE=1
       - DDS_CONFIG
       - RMW_IMPLEMENTATION
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
     command: >
       ros2 launch webots_ros2_husarion robot_launch.py robot_name:=${ROBOT_NAME}

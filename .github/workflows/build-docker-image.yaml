@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ros-distro: galactic
+          - ros-distro: humble
             platforms: "linux/amd64"
 
     steps:
