@@ -69,14 +69,11 @@ RUN apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ &
   wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
   chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
-WORKDIR /ros2_ws
 RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-webots-ros2 \
-        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow \
-    && \
+        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=package-builder /ros2_ws /ros2_ws
 
-ENTRYPOINT [ "/ros_entrypoint.sh" ]
