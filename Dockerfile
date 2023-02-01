@@ -75,5 +75,7 @@ RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ro
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
+
 COPY --from=package-builder /ros2_ws /ros2_ws
 
