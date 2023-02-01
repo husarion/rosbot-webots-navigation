@@ -1,0 +1,61 @@
+services:
+
+  rviz:
+    image: husarion/rviz2:humble
+    runtime: nvidia
+    container_name: rviz
+    network_mode: host
+    ipc: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./config/rosbot.rviz:/root/.rviz2/default.rviz
+    environment:
+      - DDS_CONFIG
+      - RMW_IMPLEMENTATION
+      - DISPLAY=${DISPLAY:?err}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+
+  rosbot:
+    image: husarion/webots:humble
+    runtime: nvidia
+    network_mode: host
+    ipc: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DDS_CONFIG
+      - RMW_IMPLEMENTATION
+      - DISPLAY=${DISPLAY:?err}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    command: ros2 launch webots_ros2_husarion robot_launch.py robot_name:=${ROBOT_NAME}
+
+  mapping:
+    image: husarion/slam-toolbox:humble
+    network_mode: host
+    ipc: host
+    volumes:
+      - ./config/slam_toolbox_params_webots.yaml:/slam_params.yaml
+    environment:
+      - DDS_CONFIG
+      - RMW_IMPLEMENTATION
+    command: >
+      ros2 launch slam_toolbox online_sync_launch.py
+        slam_params_file:=/slam_params.yaml
+        use_sim_time:=True
+
+  joy2twist:
+    image: husarion/joy2twist:humble
+    network_mode: host
+    ipc: host
+    devices:
+      - /dev/input
+    volumes:
+      - ./config/joy2twist.yaml:/joy2twist.yaml
+    environment:
+      - DDS_CONFIG
+      - RMW_IMPLEMENTATION
+    command: >
+      ros2 launch joy2twist gamepad_controller.launch.py
+        joy2twist_params_file:=/joy2twist.yaml
