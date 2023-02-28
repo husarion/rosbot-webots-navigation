@@ -34,10 +34,8 @@ SHELL ["/bin/bash", "-c"]
 RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
     vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos
 
-ENV MYDISTRO=${PREFIX:-ros}
-RUN [[ "$PREFIX" = "vulcanexus-" ]] && export MYDISTRO="vulcanexus"
-
-RUN source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
+RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
+    source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
     colcon build --packages-select  webots_ros2_husarion \
                                     webots_ros2_driver \
                                     webots_ros2_msgs \
@@ -45,7 +43,8 @@ RUN source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
                                     rosbot_bringup \
                                     rosbot_xl_description  \
                                     ros_components_description
-FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base
+
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-core
 
 SHELL ["/bin/bash", "-c"]
 ARG ROS_DISTRO
@@ -71,9 +70,11 @@ ENV PATH /usr/local/webots:${PATH}
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Webots runtime dependencies
-RUN apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-  wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
-  chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
+RUN apt-get update && apt-get install -y \
+     wget && \
+    rm -rf /var/lib/apt/lists/ && \
+    wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
+    chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
 RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-webots-ros2 \
         ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow && \
