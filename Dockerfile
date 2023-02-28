@@ -1,5 +1,4 @@
 ARG ROS_DISTRO=humble
-
 FROM husarnet/ros:$ROS_DISTRO-ros-base AS package-builder
 
 # Determine Webots version to be used and set default argument
@@ -29,14 +28,13 @@ RUN cd  /ros2_ws && \
 
 SHELL ["/bin/bash", "-c"]
 RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
-    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos
+    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_ros/rosbot/rosbot_hardware.repos
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     colcon build --packages-select  webots_ros2_husarion \
                                     webots_ros2_driver \
                                     webots_ros2_msgs \
                                     rosbot_description \
-                                    rosbot_bringup \
                                     rosbot_xl_description  \
                                     ros_components_description
 FROM husarnet/ros:$ROS_DISTRO-ros-base
