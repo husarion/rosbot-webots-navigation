@@ -1,6 +1,9 @@
 ARG ROS_DISTRO=humble
+ARG PREFIX=
 
-FROM husarnet/ros:$ROS_DISTRO-ros-base AS package-builder
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base AS package-builder
+
+ARG PREFIX
 
 # Determine Webots version to be used and set default argument
 ARG WEBOTS_VERSION=R2023a
@@ -31,7 +34,10 @@ SHELL ["/bin/bash", "-c"]
 RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
     vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos
 
-RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+ENV MYDISTRO=${PREFIX:-ros}
+RUN [[ "$PREFIX" = "vulcanexus-" ]] && export MYDISTRO="vulcanexus"
+
+RUN source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
     colcon build --packages-select  webots_ros2_husarion \
                                     webots_ros2_driver \
                                     webots_ros2_msgs \
@@ -39,7 +45,7 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
                                     rosbot_bringup \
                                     rosbot_xl_description  \
                                     ros_components_description
-FROM husarnet/ros:$ROS_DISTRO-ros-base
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base
 
 SHELL ["/bin/bash", "-c"]
 ARG ROS_DISTRO
