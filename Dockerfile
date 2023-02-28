@@ -20,7 +20,7 @@ RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b $ROS_DISTRO && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b dev && \
     cd src/webots_ros2 && \
     git submodule update --init webots_ros2_husarion/rosbot_ros && \
     git submodule update --init webots_ros2_husarion/rosbot_xl_ros && \
