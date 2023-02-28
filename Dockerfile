@@ -31,11 +31,16 @@ RUN cd  /ros2_ws && \
     cd /ros2_ws
 
 SHELL ["/bin/bash", "-c"]
-RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
-    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos
 
 RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
+    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
+    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos && \
     source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
+    # without this line (using vulcanexus base image) rosdep init throws error: "ERROR: default sources list file already exists:"
+    rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
+    rosdep init && \
+    rosdep update --rosdistro $ROS_DISTRO && \
+    rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y && \
     colcon build --packages-select  webots_ros2_husarion \
                                     webots_ros2_driver \
                                     webots_ros2_msgs \
