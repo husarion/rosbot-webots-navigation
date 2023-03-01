@@ -1,5 +1,9 @@
 ARG ROS_DISTRO=humble
-FROM husarnet/ros:$ROS_DISTRO-ros-base AS package-builder
+ARG PREFIX=
+
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base AS package-builder
+
+ARG PREFIX
 
 # Determine Webots version to be used and set default argument
 ARG WEBOTS_VERSION=R2023a
@@ -20,24 +24,31 @@ RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b dev && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b master && \
     cd src/webots_ros2 && \
     git submodule update --init webots_ros2_husarion/rosbot_ros && \
     git submodule update --init webots_ros2_husarion/rosbot_xl_ros && \
     cd /ros2_ws
 
 SHELL ["/bin/bash", "-c"]
-RUN vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
-    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_ros/rosbot/rosbot_hardware.repos
 
-RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
+    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
+    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_ros/rosbot/rosbot_hardware.repos && \
+    source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
+    # without this line (using vulcanexus base image) rosdep init throws error: "ERROR: default sources list file already exists:"
+    rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
+    rosdep init && \
+    rosdep update --rosdistro $ROS_DISTRO && \
+    rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y && \
     colcon build --packages-select  webots_ros2_husarion \
                                     webots_ros2_driver \
                                     webots_ros2_msgs \
                                     rosbot_description \
                                     rosbot_xl_description  \
                                     ros_components_description
-FROM husarnet/ros:$ROS_DISTRO-ros-base
+
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-core
 
 SHELL ["/bin/bash", "-c"]
 ARG ROS_DISTRO
@@ -63,18 +74,18 @@ ENV PATH /usr/local/webots:${PATH}
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Webots runtime dependencies
-RUN apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-  wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
-  chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
+RUN apt-get update && apt-get install -y \
+     wget && \
+    rm -rf /var/lib/apt/lists/ && \
+    wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
+    chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
-WORKDIR /ros2_ws
 RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-webots-ros2 \
-        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow \
-    && \
+        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=package-builder /ros2_ws /ros2_ws
+RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
 
-ENTRYPOINT [ "/ros_entrypoint.sh" ]
+COPY --from=package-builder /ros2_ws /ros2_ws
