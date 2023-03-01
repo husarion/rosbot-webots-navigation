@@ -25,29 +25,30 @@ WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
     git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b master && \
+    ls && \
     cd src/webots_ros2 && \
     git submodule update --init webots_ros2_husarion/rosbot_ros && \
     git submodule update --init webots_ros2_husarion/rosbot_xl_ros && \
-    cd /ros2_ws
+    git submodule update --init webots_ros2_husarion/ros_components_description && \
+    # remove all unnecessery packages
+    find webots_ros2_husarion/rosbot* -maxdepth 1 -type d !  \( -name "*_description"  -o -name "*_ros" \) -exec rm -r {} \;
+
 
 SHELL ["/bin/bash", "-c"]
 
 RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
-    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_hardware.repos && \
-    vcs import src < src/webots_ros2/webots_ros2_husarion/rosbot_xl_ros/rosbot_xl/rosbot_xl_simulation.repos && \
     source /opt/$MYDISTRO/$ROS_DISTRO/setup.bash && \
     # without this line (using vulcanexus base image) rosdep init throws error: "ERROR: default sources list file already exists:"
     rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
     rosdep init && \
     rosdep update --rosdistro $ROS_DISTRO && \
-    rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y && \
-    colcon build --packages-select  webots_ros2_husarion \
-                                    webots_ros2_driver \
-                                    webots_ros2_msgs \
-                                    rosbot_description \
-                                    rosbot_bringup \
+    rosdep install --ignore-src --from-path src/webots_ros2/webots_ros2_husarion/ --rosdistro $ROS_DISTRO -y  && \
+    colcon build --packages-select  rosbot_description \
                                     rosbot_xl_description  \
-                                    ros_components_description
+                                    ros_components_description \
+                                    webots_ros2_husarion \
+                                    webots_ros2_driver \
+                                    webots_ros2_msgs
 
 FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-core
 
@@ -90,4 +91,3 @@ RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ro
 RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
 
 COPY --from=package-builder /ros2_ws /ros2_ws
-

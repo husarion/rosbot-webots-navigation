@@ -1,6 +1,6 @@
 # Quick Start
 # $ xhost local:root
-# $ docker compose -f compose.rosbot.webots.yaml up
+# $ docker compose -f compose.rviz.yaml up
 
 x-net-config:
   &net-config
@@ -25,10 +25,21 @@ x-cpu-config:
 services:
   # if you have NVDIA GPU and NVIDIA Container Toolkit, you can replace
   # "cpu-config" with "gpu-config"
-  webots:
-    image: husarion/webots:humble
+  rviz:
+    image: husarion/rviz2:galactic
+    container_name: rviz
     <<: [ *net-config, *gpu-config ]
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./config/rosbot.rviz:/root/.rviz2/default.rviz
+
+  joy2twist:
+    image: husarion/joy2twist:galactic
+    <<: [ *net-config ]
+    devices:
+      - /dev/input
+    volumes:
+      - ./config/joy2twist.yaml:/joy2twist.yaml
     command: >
-      ros2 launch webots_ros2_husarion robot_launch.py robot_name:=${ROBOT_NAME}
+      ros2 launch joy2twist gamepad_controller.launch.py
+        joy2twist_params_file:=/joy2twist.yaml
