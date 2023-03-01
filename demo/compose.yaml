@@ -1,6 +1,6 @@
 # Quick Start
 # $ xhost local:root
-# $ docker compose -f compose.rosbot.webots.yaml up
+# $ docker compose up
 
 x-net-config:
   &net-config
