@@ -6,33 +6,24 @@ FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base AS package-builder
 ARG PREFIX
 
 # Determine Webots version to be used and set default argument
-ARG WEBOTS_VERSION=R2023a
+ARG WEBOTS_VERSION=R2023b
+ARG WEBOTS_REALESE_NAME=nightly_1_6_2023
 ARG WEBOTS_PACKAGE_PREFIX=
 
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_VERSION/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
+    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_REALESE_NAME/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
     tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
-RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool \
-                                            ros-$ROS_DISTRO-webots-ros2 ros-$ROS_DISTRO-robot-localization \
-    && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
 
-RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/husarion/webots.git webots -b husarion
+RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/cyberbotics/webots webots -b master
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b master && \
-    ls && \
-    cd src/webots_ros2 && \
-    git submodule update --init webots_ros2_husarion/rosbot_ros && \
-    git submodule update --init webots_ros2_husarion/rosbot_xl_ros && \
-    git submodule update --init webots_ros2_husarion/ros_components_description && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b develop-husarion && \
+    cd src/webots_ros2 && git submodule update --init && cd /ros2_ws && \
     # remove all unnecessery packages
-    find webots_ros2_husarion/rosbot* -maxdepth 1 -type d !  \( -name "*_description"  -o -name "*_ros" \) -exec rm -r {} \;
-
+    find src/webots_ros2/webots_ros2_husarion/rosbot* -maxdepth 1 -type d !  \( -name "*_description"  -o -name "*_ros" \) -exec rm -r {} \;
 
 SHELL ["/bin/bash", "-c"]
 
@@ -42,15 +33,10 @@ RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
     rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
     rosdep init && \
     rosdep update --rosdistro $ROS_DISTRO && \
-    rosdep install --ignore-src --from-path src/webots_ros2/webots_ros2_husarion/ --rosdistro $ROS_DISTRO -y  && \
-    colcon build --packages-select  rosbot_description \
-                                    rosbot_xl_description  \
-                                    ros_components_description \
-                                    webots_ros2_husarion \
-                                    webots_ros2_driver \
-                                    webots_ros2_msgs
+    rosdep install --ignore-src --from-path src/webots_ros2/ -y --rosdistro $ROS_DISTRO
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && colcon build
 
-FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-core
+FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base
 
 SHELL ["/bin/bash", "-c"]
 ARG ROS_DISTRO
@@ -82,12 +68,18 @@ RUN apt-get update && apt-get install -y \
     wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
     chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
-RUN apt-get update -y && apt-get install -y git wget ros-$ROS_DISTRO-ros-base ros-$ROS_DISTRO-webots-ros2 \
-        ros-$ROS_DISTRO-xacro ros-$ROS_DISTRO-robot-localization ros-$ROS_DISTRO-laser-filters python3-pillow && \
+COPY --from=package-builder /ros2_ws /ros2_ws
+
+RUN apt-get update --fix-missing -y && apt-get install -y python3-rosdep && \
+    # without this line (using vulcanexus base image) rosdep init throws error: "ERROR: default sources list file already exists:"
+    rm -rf /etc/ros/rosdep/sources.list.d/20-default.list && \
+    rosdep init && \
+    rosdep update --rosdistro $ROS_DISTRO && \
+    rosdep install --ignore-src --from-path src/webots_ros2/ -r -y --rosdistro $ROS_DISTRO  && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
+ENV USERNAME=root
 
-COPY --from=package-builder /ros2_ws /ros2_ws
+RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
