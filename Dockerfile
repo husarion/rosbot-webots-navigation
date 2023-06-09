@@ -7,7 +7,7 @@ ARG PREFIX
 
 # Determine Webots version to be used and set default argument
 ARG WEBOTS_VERSION=R2023b
-ARG WEBOTS_REALESE_NAME=nightly_1_6_2023
+ARG WEBOTS_REALESE_NAME=nightly_8_6_2023
 ARG WEBOTS_PACKAGE_PREFIX=
 
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
