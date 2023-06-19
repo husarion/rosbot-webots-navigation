@@ -18,7 +18,7 @@ RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
 
-RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/cyberbotics/webots webots -b develop
+RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/cyberbotics/webots webots -b master
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
