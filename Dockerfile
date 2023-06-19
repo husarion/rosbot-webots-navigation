@@ -23,8 +23,11 @@ RUN cd / && mkdir webots_assets && cd webots_assets && git clone -n https://gith
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b develop-husarion && \
-    cd src/webots_ros2 && git submodule update --init && cd /ros2_ws && \
+    git clone -n https://github.com/husarion/webots_ros2.git src/webots_ros2 && \
+    cd src/webots_ros2 && \
+    # back to 2023a
+    git checkout 1100456 && \
+    git submodule update --init && cd /ros2_ws && \
     # remove all unnecessery packages
     find src/webots_ros2/webots_ros2_husarion/rosbot* -maxdepth 1 -type d !  \( -name "*_description"  -o -name "*_ros" \) -exec rm -r {} \;
 
