@@ -26,7 +26,7 @@ services:
   # if you have NVDIA GPU and NVIDIA Container Toolkit, you can replace
   # "cpu-config" with "gpu-config"
   webots:
-    image: husarion/webots:humble
+    image: husarion/webots:humble-2023a
     <<: [ *net-config, *gpu-config ]
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
