@@ -23,10 +23,7 @@ WORKDIR /ros2_ws
 RUN cd  /ros2_ws && \
     git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b develop-husarion && \
     cd src/webots_ros2 && \
-    git submodule update --init && cd /ros2_ws && \
-    # remove all unnecessery packages
-    find src/webots_ros2/webots_ros2_husarion/rosbot* -maxdepth 1 -type d !  \( -name "*_description"  -o -name "*_ros" \) -exec rm -r {} \;
-
+    git submodule update --init
 SHELL ["/bin/bash", "-c"]
 
 RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
