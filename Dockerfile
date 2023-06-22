@@ -6,25 +6,22 @@ FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base AS package-builder
 ARG PREFIX
 
 # Determine Webots version to be used and set default argument
-ARG WEBOTS_VERSION=R2023a
+ARG WEBOTS_VERSION=R2023b
 
 # https://github.com/cyberbotics/webots/tags
-ARG WEBOTS_REALESE_NAME=R2023a
+ARG WEBOTS_REALESE_NAME=nightly_21_6_2023
 ARG WEBOTS_PACKAGE_PREFIX=
-
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
     wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_REALESE_NAME/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
     tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
 
-RUN cd / && mkdir webots_assets && cd webots_assets && git clone -n https://github.com/cyberbotics/webots && cd webots && \
-    # back to 2023a
-    git checkout 3f01381
+RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/husarion/webots -b 2023b
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b 2023a && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b develop-husarion && \
     cd src/webots_ros2 && \
     git submodule update --init && cd /ros2_ws && \
     # remove all unnecessery packages
