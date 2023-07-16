@@ -9,10 +9,10 @@ ARG PREFIX
 ARG WEBOTS_VERSION=R2023b
 
 # https://github.com/cyberbotics/webots/tags
-ARG WEBOTS_REALESE_NAME=nightly_21_6_2023
-ARG WEBOTS_PACKAGE_PREFIX=
+ARG WEBOTS_RELEASE_NAME=R2023b
+
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_REALESE_NAME/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
+    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_RELEASE_NAME/webots-$WEBOTS_VERSION-x86-64.tar.bz2 && \
     tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
