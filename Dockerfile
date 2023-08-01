@@ -9,15 +9,15 @@ ARG PREFIX
 ARG WEBOTS_VERSION=R2023b
 
 # https://github.com/cyberbotics/webots/tags
-ARG WEBOTS_RELEASE_NAME=R2023b
+ARG WEBOTS_RELEASE_NAME=R2024a
 
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-    wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_RELEASE_NAME/webots-$WEBOTS_VERSION-x86-64.tar.bz2 && \
+    wget https://github.com/cyberbotics/webots/releases/download/nightly_28_7_2023/webots-$WEBOTS_RELEASE_NAME-x86-64.tar.bz2 && \
     tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
 
-RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/husarion/webots -b 2023b
+RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/cyberbotics/webots -b master
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
