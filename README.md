@@ -24,10 +24,10 @@ docker run --rm -it \
 -e DISPLAY -e LIBGL_ALWAYS_SOFTWARE=1 \
 -e DDS_CONFIG=DEFAULT -e RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
 husarion/webots:humble \
-ros2 launch webots_ros2_husarion robot_launch.py
+ros2 launch webots_ros2_husarion rosbot_launch.py
 ```
 
-If you want to use ROSbot XL add a `robot_name` parameter to the launch command.
+If you want to use ROSbot XL change the launch file to `rosbot_xl_launch.py`
 
 ```bash
 docker run --rm -it \
@@ -35,7 +35,7 @@ docker run --rm -it \
 -e DISPLAY -e LIBGL_ALWAYS_SOFTWARE=1 \
 -e DDS_CONFIG=DEFAULT -e RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
 husarion/webots:humble \
-ros2 launch webots_ros2_husarion robot_launch.py robot_name:="rosbot_xl"
+ros2 launch webots_ros2_husarion rosbot_xl_launch.py
 ```
 
 ![ROSbot XL in webots simulator](.docs/rosbot_xl.png)
