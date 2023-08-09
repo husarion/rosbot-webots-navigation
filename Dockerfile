@@ -12,18 +12,18 @@ ARG WEBOTS_VERSION=R2023b
 ARG WEBOTS_RELEASE_NAME=R2024a
 
 RUN cd / && apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
-    wget https://github.com/cyberbotics/webots/releases/download/nightly_28_7_2023/webots-$WEBOTS_RELEASE_NAME-x86-64.tar.bz2 && \
+    wget https://github.com/cyberbotics/webots/releases/download/nightly_8_8_2023/webots-$WEBOTS_RELEASE_NAME-x86-64.tar.bz2 && \
     tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 RUN apt-get update -y && apt-get install -y git python3-colcon-common-extensions python3-vcstool python3-rosdep curl
 
-RUN cd / && mkdir webots_assets && cd webots_assets && git clone https://github.com/cyberbotics/webots -b develop
 WORKDIR /ros2_ws
 
 RUN cd  /ros2_ws && \
-    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b develop-husarion && \
+    git clone https://github.com/husarion/webots_ros2.git src/webots_ros2 -b 2024a && \
     cd src/webots_ros2 && \
     git submodule update --init
+
 SHELL ["/bin/bash", "-c"]
 
 RUN MYDISTRO=${PREFIX:-ros}; MYDISTRO=${MYDISTRO//-/} && \
@@ -42,16 +42,16 @@ ARG ROS_DISTRO
 ENV ROS_DISTRO $ROS_DISTRO
 
 COPY --from=package-builder /webots/ /usr/local/webots/
-COPY --from=package-builder /webots_assets/webots/projects/appearances/ /usr/local/webots/projects/appearances/
-COPY --from=package-builder /webots_assets/webots/projects/devices/orbbec/ /usr/local/webots/projects/devices/orbbec/
-COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/protos/
-COPY --from=package-builder /webots_assets/webots/projects/objects/ /usr/local/webots/projects/objects/
-COPY --from=package-builder /webots_assets/webots/projects/objects/backgrounds/ /usr/local/webots/projects/objects/backgrounds/
-COPY --from=package-builder /webots_assets/webots/projects/objects/floors/ /usr/local/webots/projects/objects/floors/
-COPY --from=package-builder /webots_assets/webots/projects/default/worlds/textures/cubic/ /usr/local/webots/projects/default/worlds/textures/cubic/
-COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/
-COPY --from=package-builder /webots_assets/webots/projects/robots/husarion/ /usr/local/webots/projects/robots/husarion/
-COPY --from=package-builder /webots_assets/webots/projects/devices/slamtec/ /usr/local/webots/projects/devices/slamtec/
+# COPY --from=package-builder /webots_assets/webots/projects/appearances/ /usr/local/webots/projects/appearances/
+# COPY --from=package-builder /webots_assets/webots/projects/devices/orbbec/ /usr/local/webots/projects/devices/orbbec/
+# COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/protos/
+# COPY --from=package-builder /webots_assets/webots/projects/objects/ /usr/local/webots/projects/objects/
+# COPY --from=package-builder /webots_assets/webots/projects/objects/backgrounds/ /usr/local/webots/projects/objects/backgrounds/
+# COPY --from=package-builder /webots_assets/webots/projects/objects/floors/ /usr/local/webots/projects/objects/floors/
+# COPY --from=package-builder /webots_assets/webots/projects/default/worlds/textures/cubic/ /usr/local/webots/projects/default/worlds/textures/cubic/
+# COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/
+# COPY --from=package-builder /webots_assets/webots/projects/robots/husarion/ /usr/local/webots/projects/robots/husarion/
+# COPY --from=package-builder /webots_assets/webots/projects/devices/slamtec/ /usr/local/webots/projects/devices/slamtec/
 
 ENV QTWEBENGINE_DISABLE_SANDBOX=1
 ENV WEBOTS_HOME /usr/local/webots
@@ -81,4 +81,4 @@ RUN apt-get update --fix-missing -y && apt-get install -y python3-rosdep && \
 
 ENV USERNAME=root
 
-RUN echo $(dpkg -s ros-$ROS_DISTRO-webots-ros2 | grep 'Version' | sed -r 's/Version:\s([0-9]+.[0-9]+.[0-9]*).*/\1/g') > /version.txt
+RUN echo $(cat /ros2_ws/src/webots_ros2_husarion/package.xml | grep '<version>' | sed -r 's/.*<version>([0-9]+.[0-9]+.[0-9]+)<\/version>/\1/g') >> /version.txt
