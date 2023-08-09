@@ -1,6 +1,8 @@
 # webots-docker
 
-[![Build/Publish Docker Image](https://github.com/husarion/webots-docker/actions/workflows/build-docker-image.yaml/badge.svg)](https://github.com/husarion/webots-docker/actions/workflows/build-docker-image.yaml)
+[![Build/Publish Docker Image](https://github.com/husarion/webots-docker/actions/workflows/ros-docker-image.yaml/badge.svg)](https://github.com/husarion/webots-docker/actions/workflows/ros-docker-image.yaml)
+
+[![Build Vulcanexus/Publish Vulcanexus Docker Image](https://github.com/husarion/webots-docker/actions/workflows/vulcanexus-docker-image.yaml/badge.svg)](https://github.com/husarion/webots-docker/actions/workflows/vulcanexus-docker-image.yaml)
 
 Dockerized ROSbot 2R and ROSbot XL simulation in webots built for ROS2 Humble distro.
 ![ROSbot in webots simulator](.docs/rosbot.png)
