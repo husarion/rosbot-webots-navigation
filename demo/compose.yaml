@@ -26,10 +26,10 @@ services:
   # if you have NVDIA GPU and NVIDIA Container Toolkit, you can replace
   # "cpu-config" with "gpu-config"
   webots:
-    image: husarion/webots:humble-2023a
+    image: husarion/webots:humble-dev
     <<: [ *net-config, *gpu-config ]
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev/dri:/dev/dri
     command: >
-      ros2 launch webots_ros2_husarion robot_launch.py robot_name:=${ROBOT_NAME}
+      ros2 launch webots_ros2_husarion rosbot_xl_launch.py
