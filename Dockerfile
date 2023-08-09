@@ -68,4 +68,4 @@ RUN apt-get update --fix-missing -y && apt-get install -y python3-rosdep && \
 
 ENV USERNAME=root
 
-RUN echo $(cat /ros2_ws/src/webots_ros2_husarion/package.xml | grep '<version>' | sed -r 's/.*<version>([0-9]+.[0-9]+.[0-9]+)<\/version>/\1/g') >> /version.txt
+RUN echo $(cat /ros2_ws/src/webots_ros2/webots_ros2_husarion/package.xml | grep '<version>' | sed -r 's/.*<version>([0-9]+.[0-9]+.[0-9]+)<\/version>/\1/g') >> /version.txt
