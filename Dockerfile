@@ -5,9 +5,6 @@ FROM husarnet/ros:${PREFIX}${ROS_DISTRO}-ros-base AS package-builder
 
 ARG PREFIX
 
-# Determine Webots version to be used and set default argument
-ARG WEBOTS_VERSION=R2023b
-
 # https://github.com/cyberbotics/webots/tags
 ARG WEBOTS_RELEASE_NAME=R2024a
 
