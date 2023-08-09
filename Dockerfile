@@ -42,16 +42,6 @@ ARG ROS_DISTRO
 ENV ROS_DISTRO $ROS_DISTRO
 
 COPY --from=package-builder /webots/ /usr/local/webots/
-# COPY --from=package-builder /webots_assets/webots/projects/appearances/ /usr/local/webots/projects/appearances/
-# COPY --from=package-builder /webots_assets/webots/projects/devices/orbbec/ /usr/local/webots/projects/devices/orbbec/
-# COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/protos/
-# COPY --from=package-builder /webots_assets/webots/projects/objects/ /usr/local/webots/projects/objects/
-# COPY --from=package-builder /webots_assets/webots/projects/objects/backgrounds/ /usr/local/webots/projects/objects/backgrounds/
-# COPY --from=package-builder /webots_assets/webots/projects/objects/floors/ /usr/local/webots/projects/objects/floors/
-# COPY --from=package-builder /webots_assets/webots/projects/default/worlds/textures/cubic/ /usr/local/webots/projects/default/worlds/textures/cubic/
-# COPY --from=package-builder /webots_assets/webots/projects/devices/tdk/ /usr/local/webots/projects/devices/tdk/
-# COPY --from=package-builder /webots_assets/webots/projects/robots/husarion/ /usr/local/webots/projects/robots/husarion/
-# COPY --from=package-builder /webots_assets/webots/projects/devices/slamtec/ /usr/local/webots/projects/devices/slamtec/
 
 ENV QTWEBENGINE_DISABLE_SANDBOX=1
 ENV WEBOTS_HOME /usr/local/webots
