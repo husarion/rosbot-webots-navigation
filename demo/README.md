@@ -1,6 +1,6 @@
 ## Environment
 
-In the [.env](.env) file you can choose a robot and a dds configuration you want to work with.
+If you want to use ROSbot 2R replace [the launchfile](https://github.com/husarion/webots-docker/blob/main/demo/compose.yaml#L35) with `rosbot_launch.py`.
 
 ## Run with `docker compose`
 
