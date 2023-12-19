@@ -14,8 +14,15 @@ Available tags: `humble`.
 ### Pulling docker image
 
 ```bash
-docker pull husarion/webots
+docker pull husarion/webots:humble
 ```
+
+### Adding non-network local connections to access control list
+
+```
+xhost local:docker
+```
+
 ### Running docker image
 
 ```bash
