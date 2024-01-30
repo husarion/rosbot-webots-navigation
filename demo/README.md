@@ -4,6 +4,11 @@ If you want to use ROSbot 2R replace [the launchfile](https://github.com/husario
 
 ## Run with `docker compose`
 
+Select the ROSbot:
+```bash
+export ROBOT_NAME=rosbot # or rosbot_xl
+```
+
 To start simulation build and run webots simulator container type:
 
 ```bash
