@@ -25,24 +25,32 @@ xhost local:docker
 
 ### Running docker image
 
+Select the ROSbot:
 ```bash
-docker run --rm -it \
--v /tmp/.X11-unix:/tmp/.X11-unix:rw \
--e DISPLAY -e LIBGL_ALWAYS_SOFTWARE=1 \
--e DDS_CONFIG=DEFAULT -e RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
-husarion/webots:humble \
-ros2 launch webots_ros2_husarion rosbot_launch.py
+export ROBOT_NAME=rosbot # or rosbot_xl
 ```
 
-If you want to use ROSbot XL change the launch file to `rosbot_xl_launch.py`
-
+Without GPU:
 ```bash
 docker run --rm -it \
 -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 -e DISPLAY -e LIBGL_ALWAYS_SOFTWARE=1 \
 -e DDS_CONFIG=DEFAULT -e RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
 husarion/webots:humble \
-ros2 launch webots_ros2_husarion rosbot_xl_launch.py
+ros2 launch webots_ros2_husarion ${ROBOT_NAME}_launch.py
+```
+
+With GPU:
+```bash
+docker run --rm -it \
+--runtime=nvidia \
+-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+-e NVIDIA_VISIBLE_DEVICES=all \
+-e NVIDIA_DRIVER_CAPABILITIES=all \
+-e DISPLAY \
+-e DDS_CONFIG=DEFAULT -e RMW_IMPLEMENTATION=rmw_fastrtps_cpp \
+husarion/webots:humble \
+ros2 launch webots_ros2_husarion ${ROBOT_NAME}_launch.py
 ```
 
 ![ROSbot XL in webots simulator](.docs/rosbot_xl.png)
