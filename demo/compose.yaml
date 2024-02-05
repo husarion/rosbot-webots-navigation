@@ -32,4 +32,4 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev/dri:/dev/dri
     command: >
-      ros2 launch webots_ros2_husarion rosbot_xl_launch.py
+      ros2 launch webots_ros2_husarion ${ROBOT_NAME:-rosbot_xl}_launch.py

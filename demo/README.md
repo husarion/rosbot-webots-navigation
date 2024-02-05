@@ -4,6 +4,11 @@ If you want to use ROSbot 2R replace [the launchfile](https://github.com/husario
 
 ## Run with `docker compose`
 
+Select the ROSbot:
+```bash
+export ROBOT_NAME=rosbot # or rosbot_xl
+```
+
 To start simulation build and run webots simulator container type:
 
 ```bash
@@ -18,9 +23,14 @@ Wait until this messages show up in the Webots console.
 >
 > INFO: 'Ros2Supervisor' extern controller: connected.
 
-Now you can use `teleop_twist` tool to drive ROSbot with keyboard.
+For visualization the ROSbots sensors run RViz2 in the another terminal:
 
-Enter `rviz` container:
+```bash
+docker compose -f compose.rviz.yaml up
+```
+
+Now you can use `teleop_twist` tool to drive ROSbot with keyboard.
+Enter `rviz` container in the new terminal:
 
 ```bash
 docker exec -it rviz bash
